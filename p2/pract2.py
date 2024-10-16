@@ -50,3 +50,21 @@ cv2.imwrite("imgs/transf-geom/hexagono_binaria_rotada.png", hexagono_binaria_rot
 
 triangulo_binaria_escalada = cv2.resize(triangulo_binaria, None, fx=0.33, fy=0.33, interpolation=cv2.INTER_LINEAR)
 cv2.imwrite("imgs/transf-geom/triangulo_binaria_escalada.png", triangulo_binaria_escalada)
+
+racoon1 = cv2.imread("imgs/racoon1.jpg", cv2.IMREAD_GRAYSCALE)
+racoon2 = cv2.imread("imgs/racoon2.jpg", cv2.IMREAD_GRAYSCALE)
+
+racoons_and = cv2.bitwise_and(racoon1, racoon2)
+cv2.imwrite("imgs/racoons_and.jpg", racoons_and)
+
+racoons_or = cv2.bitwise_or(racoon1, racoon2)
+cv2.imwrite("imgs/racoons_or.jpg", racoons_or)
+
+racoons_xor = cv2.bitwise_xor(racoon1, racoon2)
+cv2.imwrite("imgs/racoons_xor.jpg", racoons_xor)
+
+racoon1_not = cv2.bitwise_not(racoon1)
+cv2.imwrite("imgs/racoon1_not.jpg", racoon1_not)
+
+racoon2_not = cv2.bitwise_not(racoon2)
+cv2.imwrite("imgs/racoon2_not.jpg", racoon2_not)
