@@ -39,7 +39,7 @@ def transf_log(img: np.array) -> np.array:
 
 def transf_gamma(img: np.array, gamma: float) -> np.array:
     img_float = np.float32(img) / 255.0
-    img_tgamma = np.power(img_float, gamma)
+    img_tgamma = np.power(3 * img_float, gamma)
     
     return np.uint8(np.clip(img_tgamma * 255, 0, 255))
 
@@ -61,6 +61,7 @@ def rebanada_nvls_intensidad(img: np.array, rango_min: np.uint8, rango_max: np.u
     img_cp[mascara] = valor_especif
 
     return img_cp
+
 
 def rebanada_plano_bits(img: np.array, num_plano: np.uint8) -> np.array:
     return np.uint8((img >> num_plano) & 1) * 255
@@ -84,9 +85,9 @@ if __name__ == "__main__":
     cv2.imwrite("imgs/est-contraste/bc_estcont.jpg", estiramiento_contraste(img_bc))
     cv2.imwrite("imgs/est-contraste/pi_estcont.jpg", estiramiento_contraste(img_pi))
 
-    rango_min = 127
-    rango_max = 191
-    valor_especif = 255
+    rango_min = 0
+    rango_max = 64
+    valor_especif = 96
     cv2.imwrite("imgs/rebanada-nvl-intensidad/ac_rebnvlint.jpg", rebanada_nvls_intensidad(img_ac, rango_min, rango_max, valor_especif, False))
     cv2.imwrite("imgs/rebanada-nvl-intensidad/bc_rebnvlint.jpg", rebanada_nvls_intensidad(img_bc, rango_min, rango_max, valor_especif, False))
     cv2.imwrite("imgs/rebanada-nvl-intensidad/pi_rebnvlint.jpg", rebanada_nvls_intensidad(img_pi, rango_min, rango_max, valor_especif, False))
