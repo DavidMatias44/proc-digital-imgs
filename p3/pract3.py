@@ -46,6 +46,7 @@ def transf_gamma(img: np.array, gamma: float) -> np.array:
 
 def estiramiento_contraste(img: np.array) -> np.array:
     valor_minimo, valor_maximo = np.min(img), np.max(img)
+    print(valor_minimo, valor_maximo)
     img_estcont = (img - valor_minimo) * (255 / (valor_maximo - valor_minimo))
     
     return np.uint8(img_estcont)
