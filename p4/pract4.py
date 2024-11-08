@@ -42,6 +42,7 @@ if __name__ == "__main__":
     img_result_path = os.path.join(current_path, img_result_directory)
     os.makedirs(img_result_path, exist_ok=True)
     
+    # TODO: mejorar esta parte, hacerlo en una funcion o yo qué sé.
     img_ac_global_hist = equalize_hist(img_ac)
     cv2.imwrite(img_result_directory + '/ac_histograma_global.jpeg', img_ac_global_hist)
 
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     img_bi_global_hist = equalize_hist(img_bi)
     cv2.imwrite(img_result_directory + '/bi_histograma_global.jpeg', img_bi_global_hist)
 
+    # TODO: mejorar la forma en la que se muestran las imágenes, tal vez en dos ventanas separadas para que se comparen mejor.
     plt.figure(figsize=(15, 10))
 
     plt.subplot(1, 2, 1)
