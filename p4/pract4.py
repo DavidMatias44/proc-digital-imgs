@@ -58,9 +58,27 @@ def equalize_hist_local(image: np.array) -> np.array:
     return clahe.apply(image)
 
 
-def local_eq_hist(image: np.array) -> np.array:
-    pass
-    
+def local_eq_hist(image: np.array, filter_window_size: np.int8) -> np.array:
+    (height, width) = image.shape
+    restult = np.zeros((height, width))
+    offset = filter_window_size // 2
+
+    for i in range(height):
+        for j in range(width):
+            min_i = max(0, i - offset)
+            max_i = min(height, i + offset + 1)
+            min_j = max(0, j - offset)
+            max_j = min(width, j + offset + 1)
+            
+            vecinity = np.array([image[x][y] for x in range(min_i, max_i) for y in range(min_j, max_j)]).reshape(filter_window_size, filter_window_size)
+
+            histogram = get_histogram(vecinity)
+            pdf = get_PDF(histogram)
+
+            result[i][j] = pdf[image]
+
+    return result
+
 
 def global_eq_hist(image: np.array) -> np.array:
     histogram = get_histogram(image)
@@ -130,7 +148,8 @@ if __name__ == "__main__":
 
         equalization_option = input("Elija un numero (1-3): ")
         if equalization_option == '1':
-            result = equalize_hist_local(image)
+            # result = equalize_hist_local(image)
+            result = local_eq_hist(image, 5)
             show_images(image, result)
             cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-local.jpeg", result)
         elif equalization_option == '2': 
