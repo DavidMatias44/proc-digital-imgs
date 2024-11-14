@@ -12,19 +12,6 @@ import matplotlib.pyplot as plt
 MAX_INTENSITY = 256
 
 
-def read_images(image_paths: dict) -> list[np.array]:
-    images = []
-    for image_path in image_paths.values():
-        image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-        if image is None: 
-            print(f"Image not found on path: {image_path}")
-            exit(1)
-
-        images.append(np.int8(image))
-    
-    return images
-
-
 def read_image(image_path: str) -> np.array:
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if image is None:
@@ -34,50 +21,24 @@ def read_image(image_path: str) -> np.array:
     return image
 
 
-# TODO: esto
-def write_images(images: list[np.array], result_image_paths: list[str]) -> None:
-    pass
-
-# TODO: dar nombre a las imagenes; la original y el resultado (metodo usado).
-def show_images(original, result) -> None:
+def show_images(original: np.array, result: np.array, image_name: str, method: str) -> None:
     plt.subplot(1, 2, 1)
-    # plt.title("Imagen original (alto contraste).")
+    plt.title(f"Imagen original ({image_name}).")
     plt.imshow(original, cmap='gray', vmin=0, vmax=255)
     plt.axis('off')
 
     plt.subplot(1, 2, 2)
-    # plt.title("Imagen ecualización de histograma global (alto contraste).")
+    plt.title(f"Imagen usando: {method} ({image_name}).")
     plt.imshow(result, cmap='gray', vmin=0, vmax=255)
     plt.axis('off')
 
     plt.show()
+    return
 
 
-def equalize_hist_local(image: np.array) -> np.array:
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+def local_eq_hist(image: np.array, filter_window_size: np.uint16) -> np.array:
+    clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(filter_window_size, filter_window_size))
     return clahe.apply(image)
-
-
-def local_eq_hist(image: np.array, filter_window_size: np.int8) -> np.array:
-    (height, width) = image.shape
-    restult = np.zeros((height, width))
-    offset = filter_window_size // 2
-
-    for i in range(height):
-        for j in range(width):
-            min_i = max(0, i - offset)
-            max_i = min(height, i + offset + 1)
-            min_j = max(0, j - offset)
-            max_j = min(width, j + offset + 1)
-            
-            vecinity = np.array([image[x][y] for x in range(min_i, max_i) for y in range(min_j, max_j)]).reshape(filter_window_size, filter_window_size)
-
-            histogram = get_histogram(vecinity)
-            pdf = get_PDF(histogram)
-
-            result[i][j] = pdf[image]
-
-    return result
 
 
 def global_eq_hist(image: np.array) -> np.array:
@@ -112,6 +73,25 @@ def get_PDF(histogram: np.array) -> np.array:
     return np.uint8(np.round(result))
 
 
+def realce_usando_estadistica_del_histograma(image, window_filter_size):
+    result = np.copy(image)
+    cte = 0.9
+    E = 2.5
+
+    media_global = np.mean(image)
+    desv_estandar_global = np.sqrt(np.var(image))
+
+    window_filter = (window_filter_size, window_filter_size)
+    media_local = cv2.blur(image, window_filter)
+    desv_estandar_local = np.sqrt(cv2.blur(image ** 2, window_filter) - media_local ** 2)
+
+    condicion = media_local <= (cte * media_global)
+    print(condicion)
+    result[condicion] = np.clip(E * image[condicion], 0, 255)
+
+    return result
+
+
 if __name__ == "__main__":
     image_paths = {
         '1': "imgs/alto_contraste.jpg",
@@ -120,12 +100,15 @@ if __name__ == "__main__":
         '4': "imgs/baja_iluminacion.jpg"
     }
     aux = {"1": "ac", "2": "bc", "3": "ai", "4": "bi"}
-    img_ac, img_bc, img_ai, img_bi = read_images(image_paths)
-
-    # TODO: dependiendo si el directorio existe, abrir, procesar y guardar TODAS las imagenes.
-    # las imagenes resultado se guardan en un subdirectorio en esta misma carpeta. 
-    current_path = os.path.dirname(os.path.abspath(__file__))
+    aux2 = {
+        "1": "alto contraste",
+        "2": "bajo contraste",
+        "3": "alta iluminacion",
+        "4": "baja iluminacion"
+    }
     img_result_directory = "img-resultados" 
+
+    current_path = os.path.dirname(os.path.abspath(__file__))
     img_result_path = os.path.join(current_path, img_result_directory)
     os.makedirs(img_result_path, exist_ok=True)
     
@@ -140,21 +123,30 @@ if __name__ == "__main__":
         image_option = input("Elija un numero (1-5): ")
         if image_option in image_paths: image = read_image(image_paths[image_option])
         elif image_option == "5": break
+        else: continue
 
-        print("\nOpciones (ecualización de histograma): ")
-        print("  [1]: Local.")
-        print("  [2]: Global.")
-        print("  [3]: Cancelar.")
+        print("\nOpciones: ")
+        print("  [1]: Ecualizacion del histograma local.")
+        print("  [2]: Ecualizacion del histograma global.")
+        print("  [3]: Realce usando estadistica del histograma.")
+        print("  [4]: Cancelar.")
 
-        equalization_option = input("Elija un numero (1-3): ")
+        equalization_option = input("Elija un numero (1-4): ")
         if equalization_option == '1':
-            # result = equalize_hist_local(image)
-            result = local_eq_hist(image, 5)
-            show_images(image, result)
+            window_filter_size = int(input("\nIntroduzca el tamano de la ventana: "))
+
+            result = local_eq_hist(image, window_filter_size)
+            show_images(image, result, aux2[image_option], "ecualizacion de histograma local")
             cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-local.jpeg", result)
         elif equalization_option == '2': 
             result = global_eq_hist(image)
-            show_images(image, result)
+            show_images(image, result, aux2[image_option], "ecualizacion de histograma global")
             cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-global.jpeg", result)
-        elif equalization_option == '3': continue
+        elif equalization_option == '3': 
+            window_filter_size = int(input("\nIntroduzca el tamano de la ventana: "))
+
+            result = realce_usando_estadistica_del_histograma(image, window_filter_size)
+            show_images(image, result, aux2[image_option], "estadistica del histograma")
+            cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-uso-est-hist.jpeg", result)
+        else: continue
         
