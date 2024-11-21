@@ -109,13 +109,17 @@ def filtro_laplaciano(image: np.array):
         [0,  1, 0],
     ])
     result = np.zeros_like(image)
+    temp = np.zeros_like(image)
     padded_image = add_zero_padding(image, 1)
     
     height, width = image.shape
     for i in range(height):
         for j in range(width):
             vecinity = padded_image[i:i + 3, j:j + 3]
-            result[i, j] = np.sum(matriz * vecinity)
+            temp[i, j] = np.sum(matriz * vecinity)
+
+    # el centro de la matriz utilizada es negativo, por ello la cte es negativa, como la cte = 1, entonces simplemente se resta.
+    result = image - temp
 
     return np.clip(result, 0, 255)
 
@@ -195,15 +199,30 @@ if __name__ == "__main__":
                 show_images(image, result, aux2[image_option], "filtro promedio")
                 cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-prom.jpg", result)
             elif filter_option == '2':
-                pass
+                result = filtro_mediana(image, kernel_size)
+
+                show_images(image, result, aux2[image_option], "filtro mediana")
+                cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-med.jpg", result)
             elif filter_option == '3':
-                pass
+                result = filtro_maximo(image, kernel_size)
+
+                show_images(image, result, aux2[image_option], "filtro maximo")
+                cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-max.jpg", result)
             elif filter_option == '4':
-                pass
+                result = filtro_minimo(image, kernel_size)
+
+                show_images(image, result, aux2[image_option], "filtro minimo")
+                cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-min.jpg", result)
         elif filter_option == '5':
-            pass
+            result = filtro_laplaciano(image)
+
+            show_images(image, result, aux2[image_option], "filtro laplaciano")
+            cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-lapl.jpg", result)
         elif filter_option == '6':
-            pass
+            result = filtro_gradiente(image)
+
+            show_images(image, result, aux2[image_option], "filtro gradiente")
+            cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-grad.jpg", result)
         else: continue
 
         #     result = local_eq_hist(image, window_filter_size)
