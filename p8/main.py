@@ -58,12 +58,14 @@ def deteccion_ejes_canny(img, umbral1=50, umbral2=150):
     return bordes_canny
 
 
-def umbralizacion_global_basica(img):
-    pass
+def umbralizacion_global_basica(img, umbral=128):
+    _, binaria = cv2.threshold(img, umbral, 255, cv2.THRESH_BINARY)
+    return binaria
 
 
 def umbralizacion_global_otsu(img):
-    pass
+    umbral, binaria = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    return binaria, umbral
 
 
 if __name__ == "__main__":
@@ -121,49 +123,15 @@ if __name__ == "__main__":
             result = deteccion_ejes_canny(image, umbral1, umbral2)
             show_images(image, result, aux[image_option], "Canny")
             cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-canny.jpg", result)
+        elif option == '5':
+            umbral = int(input("Introduzca el umbral: "))
 
-#         if option < '5':
-#             kernel_size = int(input("Introduzca el tamano del kernel: "))
-#             # elemento_estructurante = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_size, kernel_size))
-#             # elemento_estructurante = cv2.getStructuringElement(cv2.MORPH_CROSS, (kernel_size, kernel_size))
-#             elemento_estructurante = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
-            
-
-#             if option == '1':
-#                 result = erosion(image, elemento_estructurante)
-
-#                 show_images(image, result, aux[image_option], "erosion")
-#                 cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-erosion.jpg", result)
-#             elif option == '2':
-#                 result = dilatacion(image, elemento_estructurante)
-
-#                 show_images(image, result, aux[image_option], "dilatacion")
-#                 cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-dilatacion.jpg", result)
-#             elif option == '3':
-#                 result = apertura(image, elemento_estructurante)
-
-#                 show_images(image, result, aux[image_option], "apertura")
-#                 cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-apertura.jpg", result)
-#             elif option == '4':
-#                 result = cierre(image, elemento_estructurante)
-
-#                 show_images(image, result, aux[image_option], "cierre")
-#                 cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-cierre.jpg", result)
-#         elif option == '5':
-#             result = extraccion_limites(image)
-
-#             show_images(image, result, aux[image_option], "extraccion limites")
-#             cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-ext_limites.jpg", result)
-#         elif option == '6':
-#             result = rellenado_hoyos(image)
-#             result = apertura(result, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
-
-#             show_images(image, result, aux[image_option], "rellenado hoyos")
-#             cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-rell_hoyos.jpg", result)
-#         elif option == '7':
-#             num_etiquetas, etiquetas = extraer_componentes_conectados(image)
-
-#             print(f"Numero de componentes hallados: {num_etiquetas}") 
-#             # show_images(image, etiquetas, aux[image_option], "extraccion componentes conectados")
-#             # cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-ext_comp_conectados.jpg", etiquetas)
-#         else: continue
+            result = umbralizacion_global_basica(image, umbral)
+            # 90, 100, 150
+            show_images(image, result, aux[image_option], "Umbralización técnica básica")
+            cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-umb-basica.jpg", result)
+        elif option == '6':
+            result, umbral = umbralizacion_global_otsu(image)
+            show_images(image, result, aux[image_option], f"Umbralización Otsu (umbral calculado: {umbral})")
+            cv2.imwrite(f"{img_result_directory}/{aux[image_option]}-umb-otsu.jpg", result)
+        else: continue
